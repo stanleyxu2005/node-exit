@@ -1,7 +1,7 @@
 {
   "name": "node-exit",
   "description": "",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "Apache-2.0",
   "keywords": ["process", "exit", "shutdown", "graceful"],
   "homepage": "https://github.com/stanleyxu2005/node-exit",
@@ -13,8 +13,5 @@
   "bugs": {
     "url": "https://github.com/stanleyxu2005/node-exit/issues"
   },
-  "main": "node-exit.js",
-  "peerDependencies": {
-    "log4js": "latest"
-  }
+  "main": "node-exit.js"
 }
