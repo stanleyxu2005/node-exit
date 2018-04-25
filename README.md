@@ -1,5 +1,7 @@
 # Node-Exit
 
+[![npm version](https://badge.fury.io/js/node-exit.svg)](http://badge.fury.io/js/node-exit) 
+
 A simple process exit hook to make sure you can run your clean up code before node process exits. 
 
 ## Code Example
