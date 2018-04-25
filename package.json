@@ -1,0 +1,20 @@
+{
+  "name": "node-exit",
+  "description": "",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "keywords": ["process", "exit", "shutdown", "graceful"],
+  "homepage": "https://github.com/stanleyxu2005/node-exit",
+  "author": "Qian Xu (https://github.com/stanleyxu2005)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stanleyxu2005/node-exit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stanleyxu2005/node-exit/issues"
+  },
+  "main": "node-exit.js",
+  "peerDependencies": {
+    "log4js": "2.x"
+  }
+}
