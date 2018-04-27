@@ -1,6 +1,6 @@
 {
   "name": "node-exit",
-  "description": "",
+  "description": "Broadcast exit event to listener before the actual exit handler is called",
   "version": "1.0.2",
   "license": "Apache-2.0",
   "keywords": ["process", "exit", "shutdown", "graceful"],
