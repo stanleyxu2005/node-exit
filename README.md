@@ -12,9 +12,9 @@ these processes. With this module, we can tell `pm2` no longer monit terminated 
 
 In `app.js`
 ```javascript
-const ne = require('node-exit')
+const shutdown = require('node-exit')
 
-ne.registerExitHandler((isExpectedExit, error) => {
+shutdown.registerExitHandler((isExpectedExit, error) => {
   if (!isExpectedExit) {
     console.error('This is not an expected exit', error)
   }
@@ -23,11 +23,11 @@ ne.registerExitHandler((isExpectedExit, error) => {
 
 In `pm2.js`
 ```javascript
-const ne = require('node-exit')
+const shutdown = require('node-exit')
 const pm2 = require('pm2')
 
 pm2.connect(false)
-ne.on('exit', (isExpectedExit) => {
+shutdown.on('exit', (isExpectedExit) => {
   pm2.killDaemon()
 })
 ```
