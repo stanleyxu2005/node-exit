@@ -1,7 +1,11 @@
-'use strict'
+/**
+ * Software distributed under the Apache License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the License for the specific language governing rights and limitations under the License.
+ */
 
 const assert = require('assert').ok
 const {EventEmitter} = require('events')
+
 let logger = null
 try {
   logger = require('log4js').getLogger()
@@ -16,9 +20,11 @@ try {
 class NodeExit extends EventEmitter {
   constructor() {
     super()
+
     this.signals = ['SIGINT', 'SIGTERM', 'unhandledRejection', 'uncaughtException']
-    this._handler = null
-    this._exiting = false
+    this._exitHandler = null
+    this._isExiting = false
+
     process.once('exit', (code) => {
       if (code > 0) {
         logger.fatal(`Something went wrong, unexpected termination (code=${code})...`)
@@ -30,18 +36,21 @@ class NodeExit extends EventEmitter {
    * Make sure the process will be terminated gracefully
    */
   registerExitHandler(handler) {
-    assert(!this._handler, `Allow only one exit handler, you can subscribe 'exit' event.`)
-    this._handler = handler
+    assert(!this._exitHandler, `Allow only one exit handler, you can subscribe 'exit' event.`)
+
+    this._exitHandler = handler
     this.signals.forEach((signal) => {
       process.on(signal, (err) => {
-        err = signal.startsWith('SIG') ? undefined : err
+        if (signal.startsWith('SIG')) {
+          err = undefined
+        }
         return this._initiateNodeExit(signal, err)
       })
     })
   }
 
   async _initiateNodeExit(signal, err) {
-    if (this._exiting) {
+    if (this._isExiting) {
       logger.fatal(`${signal} received twice. Signal handler seems not responding.`, err)
       return process.exit(1)
     }
@@ -56,9 +65,9 @@ class NodeExit extends EventEmitter {
     const isExpectedExit = exitCode === 0
     this.emit('exit', isExpectedExit)
 
-    this._exiting = true
+    this._isExiting = true
     try {
-      exitCode = (await this._handler(isExpectedExit, err)) || exitCode
+      exitCode = (await this._exitHandler(isExpectedExit, err)) || exitCode
     } catch (ex) {
       logger.fatal(ex)
       exitCode = exitCode || 1
@@ -66,7 +75,6 @@ class NodeExit extends EventEmitter {
 
     process.exit(exitCode)
   }
-
 }
 
 const singleton = new NodeExit()

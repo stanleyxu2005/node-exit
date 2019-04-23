@@ -1,9 +1,14 @@
 {
   "name": "node-exit",
   "description": "Broadcast exit event to listener before the actual exit handler is called",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "license": "Apache-2.0",
-  "keywords": ["process", "exit", "shutdown", "graceful"],
+  "keywords": [
+    "process",
+    "exit",
+    "shutdown",
+    "graceful"
+  ],
   "homepage": "https://github.com/stanleyxu2005/node-exit",
   "author": "Qian Xu (https://github.com/stanleyxu2005)",
   "repository": {
@@ -13,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/stanleyxu2005/node-exit/issues"
   },
-  "main": "node-exit.js"
+  "main": "node-exit.js",
+  "optionalDependencies": {
+    "log4js": "^2.5.2"
+  }
 }

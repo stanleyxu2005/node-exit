@@ -1,8 +1,8 @@
 # Node-Exit
 
-[![npm version](https://badge.fury.io/js/node-exit.svg)](http://badge.fury.io/js/node-exit) 
+[![npm version](https://badge.fury.io/js/node-exit.svg)](http://badge.fury.io/js/node-exit)
 
-A simple process exit hook to make sure you can run your clean up code before node process exits. 
+A simple process exit hook to make sure you can run your clean up code before node process exits.
 
 ## Code Example
 
@@ -11,6 +11,7 @@ kill application, the signal will be sent to child processes as well. `pm2` will
 these processes. With this module, we can tell `pm2` no longer monit terminated processes.
 
 In `app.js`
+
 ```javascript
 const shutdown = require('node-exit')
 
@@ -22,12 +23,11 @@ shutdown.registerExitHandler((isExpectedExit, error) => {
 ```
 
 In `pm2.js`
+
 ```javascript
 const shutdown = require('node-exit')
 const pm2 = require('pm2')
 
 pm2.connect(false)
-shutdown.on('exit', (isExpectedExit) => {
-  pm2.killDaemon()
-})
+shutdown.on('exit', () => pm2.killDaemon())
 ```

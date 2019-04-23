@@ -1,0 +1,19 @@
+{
+  "arrowParens": "always",
+  "bracketSpacing": false,
+  "endOfLine": "crlf",
+  "jsxBracketSameLine": false,
+  "jsxSingleQuote": true,
+  "printWidth": 100,
+  "semi": false,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "overrides": [
+    {
+      "files": "*.js",
+      "options": {
+        "parser": "babel-flow"
+      }
+    }
+  ]
+}
