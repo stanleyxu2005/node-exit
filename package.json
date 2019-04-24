@@ -18,14 +18,14 @@
   "bugs": {
     "url": "https://github.com/stanleyxu2005/node-exit/issues"
   },
-  "main": "node-exit.js",
+  "main": "src/index.js",
   "optionalDependencies": {
     "log4js": "^2.5.2"
   },
   "files": [
     "LICENSE",
-    "node-exit.js",
     "package.json",
-    "README.md"
+    "README.md",
+    "src"
   ]
 }

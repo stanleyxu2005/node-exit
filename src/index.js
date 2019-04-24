@@ -41,7 +41,7 @@ class NodeExit extends EventEmitter {
     this._exitHandler = handler
     this.signals.forEach((signal) => {
       process.on(signal, (err) => {
-        if (signal.startsWith('SIG')) {
+        if (signal === 'SIGINT') {
           err = undefined
         }
         return this._initiateNodeExit(signal, err)
