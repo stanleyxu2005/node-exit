@@ -1,10 +1,11 @@
 /**
- * Software distributed under the Apache License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either
- * express or implied. See the License for the specific language governing rights and limitations under the License.
+ * Software distributed under the Apache License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the
+ * specific language governing rights and limitations under the License.
  */
 
 const assert = require('assert').ok
-const {EventEmitter} = require('events')
+const { EventEmitter } = require('events')
 
 let logger = null
 try {
@@ -15,7 +16,7 @@ try {
 }
 
 /**
- * Gracefully shutdown a nodejs process
+ * Gracefully handle process exit events
  */
 class NodeExit extends EventEmitter {
   constructor() {
@@ -36,7 +37,10 @@ class NodeExit extends EventEmitter {
    * Make sure the process will be terminated gracefully
    */
   registerExitHandler(handler) {
-    assert(!this._exitHandler, `Allow only one exit handler, you can subscribe 'exit' event.`)
+    assert(
+      !this._exitHandler,
+      `You can register the exit handler only once and then subscribe 'exit' event.`,
+    )
 
     this._exitHandler = handler
     this.signals.forEach((signal) => {
@@ -44,12 +48,12 @@ class NodeExit extends EventEmitter {
         if (signal === 'SIGINT') {
           err = undefined
         }
-        return this._initiateNodeExit(signal, err)
+        return this._handleProcessExit(signal, err)
       })
     })
   }
 
-  async _initiateNodeExit(signal, err) {
+  async _handleProcessExit(signal, err) {
     if (this._isExiting) {
       logger.fatal(`${signal} received twice. Signal handler seems not responding.`, err)
       return process.exit(1)
