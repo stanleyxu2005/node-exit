@@ -19,9 +19,6 @@
     "url": "https://github.com/stanleyxu2005/node-exit/issues"
   },
   "main": "src/index.js",
-  "optionalDependencies": {
-    "log4js": "^2.5.2"
-  },
   "files": [
     "LICENSE",
     "package.json",

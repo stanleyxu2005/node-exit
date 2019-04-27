@@ -17,19 +17,25 @@ const shutdown = require('node-exit')
 
 shutdown.registerExitHandler((isExpectedExit, error) => {
   if (!isExpectedExit) {
-    console.fatal('This is not an expected exit', error)
+    console.fatal('Unexpected exit', error)
   }
+  // Put your clean up code here
 })
 ```
 
-In `pm2.js`
+If you have more than one exit handling, here is an example:
 
 ```javascript
 const shutdown = require('node-exit')
 const pm2 = require('pm2')
 
-pm2.connect(false)
+// Start PM2
+const detached = false
+pm2.connect(detached)
+
+// Hook for stop
 shutdown.on('will-exit', (isExpectedExit) => {
+  console.debug('Will exit soon...')
   pm2.killDaemon()
 })
 ```

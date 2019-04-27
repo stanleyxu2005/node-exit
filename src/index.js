@@ -7,22 +7,17 @@
 const assert = require('assert').ok
 const { EventEmitter } = require('events')
 
-let logger = null
-try {
-  logger = require('log4js').getLogger()
-} catch (ex) {
-  logger = console
-  logger.fatal = console.error
-}
+let logger = console
+logger.fatal = console.error
 
 /**
  * Gracefully shutdown a nodejs process
  */
-class NodeExit extends EventEmitter {
+class ProcessExitHandler extends EventEmitter {
   constructor() {
     super()
 
-    this.defaultErrorExitCode = 1
+    this.errorExitCode = 1
     this.processEvents = ['SIGINT', 'SIGTERM', 'unhandledRejection', 'uncaughtException']
 
     this._isExiting = false
@@ -35,11 +30,28 @@ class NodeExit extends EventEmitter {
     })
   }
 
+  setLogger(customLogger) {
+    assert(!!customLogger)
+    logger = customLogger
+  }
+
+  setErrorExitCode(exitCode) {
+    assert(exitCode > 0)
+    this.errorExitCode = exitCode
+  }
+
   /**
    * Make sure the process will be terminated gracefully
    */
   registerExitHandler(handler) {
-    assert(!this._handler, `Allow only one exit handler, you can subscribe 'exit' event.`)
+    assert(
+      typeof handler === typeof Function,
+      'Need to specify an exit handler like this: `handleExit(isExpected, error) => {}`',
+    )
+    assert(
+      !this._handler,
+      `Why to register Exit handler twice? Note that you can listen 'will-exit' event.`,
+    )
 
     this._handler = handler
 
@@ -58,43 +70,39 @@ class NodeExit extends EventEmitter {
       } else {
         error = arg0
       }
-      return this._initiateNodeExit(event, error)
+      return this._initiateProcessExit(event, error)
     })
   }
 
-  async _initiateNodeExit(event, err) {
+  async _initiateProcessExit(event, error) {
     if (this._isExiting) {
       logger.fatal(
-        `${event} received twice. Exit handler seems not to respond, force exit.`,
-        err,
+        `${event} received twice. Exit handler seems not responding, force exit.`,
+        error,
       )
-      process.exit(this.defaultErrorExitCode)
+      process.exit(this.errorExitCode)
     }
     this._isExiting = true
 
-    if (err) {
-      logger.fatal(`Unexpected shutting down...`, err)
+    if (error) {
+      logger.fatal(`Unexpected shutting down...`, error)
     } else {
       logger.warn(`${event} received, shutting down...`)
     }
 
-    const isExpectedExit = Boolean(!err)
+    const isExpectedExit = Boolean(!error)
     this.emit('will-exit', isExpectedExit)
-    this.emit('exit', isExpectedExit) // will deprecate soon
 
-    let exitCode
     try {
-      exitCode = await this._handler(isExpectedExit, err)
+      await this._handler(isExpectedExit, error)
     } catch (ex) {
       logger.fatal(ex)
     }
 
-    if (!isExpectedExit && !exitCode) {
-      exitCode = this.defaultErrorExitCode
-    }
+    const exitCode = isExpectedExit ? 0 : this.errorExitCode
     process.exit(exitCode)
   }
 }
 
-const singleton = new NodeExit()
+const singleton = new ProcessExitHandler()
 module.exports = singleton
