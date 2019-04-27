@@ -40,27 +40,34 @@ class ProcessExitHandler extends EventEmitter {
     this.errorExitCode = exitCode
   }
 
+  registerExitHandler(handler) {
+    logger.warn('DEPRECATED: Please use `setExitHandler` instead.')
+    this.setExitHandler(handler)
+  }
+
   /**
    * Make sure the process will be terminated gracefully
    */
-  registerExitHandler(handler) {
+  setExitHandler(handler) {
     assert(
       typeof handler === typeof Function,
-      'Need to specify an exit handler like this: `handleExit(isExpected, error) => {}`',
+      'Invalid exit handler, example: `handleExit(isExpected, error) => {}`',
     )
-    assert(
-      !this._handler,
-      `Why to register Exit handler twice? Note that you can listen 'will-exit' event.`,
-    )
+    if (!!this._handler) {
+      logger.warn(
+        'Multiple exit handler is not allowed. ' +
+          "Consider use `shutdown.on('will-exit', (isExpected) => {})` to observe.",
+      )
+    }
 
     this._handler = handler
 
     this.processEvents.forEach((event) => {
-      this._registerProcessEvent(event)
+      this._monitorProcessEvent(event)
     })
   }
 
-  _registerProcessEvent(event) {
+  _monitorProcessEvent(event) {
     process.on(event, (arg0, arg1) => {
       let error
       if (event === 'SIGINT') {
@@ -70,11 +77,11 @@ class ProcessExitHandler extends EventEmitter {
       } else {
         error = arg0
       }
-      return this._initiateProcessExit(event, error)
+      return this._handleProcessExit(event, error)
     })
   }
 
-  async _initiateProcessExit(event, error) {
+  async _handleProcessExit(event, error) {
     if (this._isExiting) {
       logger.fatal(
         `${event} received twice. Exit handler seems not responding, force exit.`,
