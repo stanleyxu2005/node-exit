@@ -16,15 +16,17 @@ try {
 }
 
 /**
- * Gracefully handle process exit events
+ * Gracefully shutdown a nodejs process
  */
 class NodeExit extends EventEmitter {
   constructor() {
     super()
 
-    this.signals = ['SIGINT', 'SIGTERM', 'unhandledRejection', 'uncaughtException']
-    this._exitHandler = null
+    this.defaultErrorExitCode = 1
+    this.processEvents = ['SIGINT', 'SIGTERM', 'unhandledRejection', 'uncaughtException']
+
     this._isExiting = false
+    this._handler = null
 
     process.once('exit', (code) => {
       if (code > 0) {
@@ -37,46 +39,59 @@ class NodeExit extends EventEmitter {
    * Make sure the process will be terminated gracefully
    */
   registerExitHandler(handler) {
-    assert(
-      !this._exitHandler,
-      `You can register the exit handler only once and then subscribe 'exit' event.`,
-    )
+    assert(!this._handler, `Allow only one exit handler, you can subscribe 'exit' event.`)
 
-    this._exitHandler = handler
-    this.signals.forEach((signal) => {
-      process.on(signal, (err) => {
-        if (signal === 'SIGINT') {
-          err = undefined
-        }
-        return this._handleProcessExit(signal, err)
-      })
+    this._handler = handler
+
+    this.processEvents.forEach((event) => {
+      this._registerProcessEvent(event)
     })
   }
 
-  async _handleProcessExit(signal, err) {
+  _registerProcessEvent(event) {
+    process.on(event, (arg0, arg1) => {
+      let error
+      if (event === 'SIGINT') {
+        error = null
+      } else if (arg1 && typeof arg1 === 'object') {
+        error = arg1
+      } else {
+        error = arg0
+      }
+      return this._initiateNodeExit(event, error)
+    })
+  }
+
+  async _initiateNodeExit(event, err) {
     if (this._isExiting) {
-      logger.fatal(`${signal} received twice. Signal handler seems not responding.`, err)
-      return process.exit(1)
+      logger.fatal(
+        `${event} received twice. Exit handler seems not to respond, force exit.`,
+        err,
+      )
+      process.exit(this.defaultErrorExitCode)
     }
+    this._isExiting = true
 
     if (err) {
       logger.fatal(`Unexpected shutting down...`, err)
     } else {
-      logger.warn(`${signal} received, shutting down...`)
+      logger.warn(`${event} received, shutting down...`)
     }
 
-    let exitCode = err ? 1 : 0
-    const isExpectedExit = exitCode === 0
-    this.emit('exit', isExpectedExit)
+    const isExpectedExit = Boolean(!err)
+    this.emit('will-exit', isExpectedExit)
+    this.emit('exit', isExpectedExit) // will deprecate soon
 
-    this._isExiting = true
+    let exitCode
     try {
-      exitCode = (await this._exitHandler(isExpectedExit, err)) || exitCode
+      exitCode = await this._handler(isExpectedExit, err)
     } catch (ex) {
       logger.fatal(ex)
-      exitCode = exitCode || 1
     }
 
+    if (!isExpectedExit && !exitCode) {
+      exitCode = this.defaultErrorExitCode
+    }
     process.exit(exitCode)
   }
 }

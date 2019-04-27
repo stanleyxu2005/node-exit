@@ -17,7 +17,7 @@ const shutdown = require('node-exit')
 
 shutdown.registerExitHandler((isExpectedExit, error) => {
   if (!isExpectedExit) {
-    console.error('This is not an expected exit', error)
+    console.fatal('This is not an expected exit', error)
   }
 })
 ```
@@ -29,5 +29,7 @@ const shutdown = require('node-exit')
 const pm2 = require('pm2')
 
 pm2.connect(false)
-shutdown.on('exit', () => pm2.killDaemon())
+shutdown.on('will-exit', (isExpectedExit) => {
+  pm2.killDaemon()
+})
 ```
