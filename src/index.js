@@ -25,7 +25,9 @@ class ProcessExitHandler extends EventEmitter {
 
     process.once('exit', (code) => {
       if (code > 0) {
-        logger.fatal(`Something went wrong, unexpected termination (code=${code})...`)
+        logger.fatal(
+          `Process (${process.pid}) was terminated unexpectedly (code=${code})...`,
+        )
       }
     })
   }
@@ -92,9 +94,9 @@ class ProcessExitHandler extends EventEmitter {
     this._isExiting = true
 
     if (error) {
-      logger.fatal(`Unexpected shutting down...`, error)
+      logger.fatal(`${event} received (unexpected), going to shutdown`)
     } else {
-      logger.warn(`${event} received, shutting down...`)
+      logger.warn(`${event} received, going to shutdown`)
     }
 
     const isExpectedExit = Boolean(!error)
